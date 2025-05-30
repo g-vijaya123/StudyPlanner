@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyPlanner Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            min-height: 100vh;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px 10px;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-tab.active {
+            color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .nav-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #4CAF50;
+        }
+
+        .content {
+            padding: 20px;
+            min-height: calc(100vh - 200px);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Task Styles */
+        .add-task-form {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .priority-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .priority-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .priority-btn.high { border-color: #f44336; color: #f44336; }
+        .priority-btn.medium { border-color: #ff9800; color: #ff9800; }
+        .priority-btn.low { border-color: #4CAF50; color: #4CAF50; }
+
+        .priority-btn.active {
+            background: currentColor;
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .task-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-left: 4px solid #4CAF50;
+            transition: transform 0.2s ease;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .task-card.high { border-left-color: #f44336; }
+        .task-card.medium { border-left-color: #ff9800; }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .task-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+
+        .task-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .task-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .complete-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .edit-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 6px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        /* Calendar Styles */
+        .calendar-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-nav {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            transition: background 0.2s ease;
+        }
+
+        .calendar-nav:hover {
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .calendar-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .calendar-day.today {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .calendar-day.has-tasks::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 6px;
+            height: 6px;
+            background: #ff9800;
+            border-radius: 50%;
+        }
+
+        .day-header {
+            font-weight: 600;
+            color: #666;
+            padding: 10px 0;
+        }
+
+        /* Timer Styles */
+        .timer-container {
+            text-align: center;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .timer-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .timer-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .start-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .pause-btn {
+            background: #ff9800;
+            color: white;
+        }
+
+        .reset-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .session-types {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .session-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .session-btn.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        /* Progress Styles */
+        .progress-overview {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .progress-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .progress-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .progress-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .achievement-badge {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 5px;
+            display: inline-block;
+            font-size: 14px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Settings Styles */
+        .settings-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .settings-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #ccc;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #4CAF50;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(26px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .app-container {
+                max-width: 100%;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .timer-display {
+                font-size: 36px;
+            }
+            
+            .progress-overview {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Dark Mode */
+        .dark-mode {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        }
+
+        .dark-mode .app-container {
+            background: rgba(44, 62, 80, 0.95);
+            color: #ecf0f1;
+        }
+
+        .dark-mode .nav-tabs,
+        .dark-mode .add-task-form,
+        .dark-mode .task-card,
+        .dark-mode .calendar-container,
+        .dark-mode .timer-container,
+        .dark-mode .progress-card,
+        .dark-mode .settings-section {
+            background: rgba(52, 73, 94, 0.9);
+            color: #ecf0f1;
+        }
+
+        .dark-mode input,
+        .dark-mode select,
+        .dark-mode textarea {
+            background: rgba(44, 62, 80, 0.5);
+            color: #ecf0f1;
+            border-color: #34495e;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>📚 StudyPlanner Pro</h1>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-number" id="totalTasks">0</span>
+                    <span class="stat-label">Total Tasks</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="completedTasks">0</span>
+                    <span class="stat-label">Completed</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="studyStreak">0</span>
+                    <span class="stat-label">Day Streak</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="tasks">📝 Tasks</button>
+            <button class="nav-tab" data-tab="calendar">📅 Calendar</button>
+            <button class="nav-tab" data-tab="timer">⏰ Timer</button>
+            <button class="nav-tab" data-tab="progress">📊 Progress</button>
+            <button class="nav-tab" data-tab="settings">⚙️ Settings</button>
+        </div>
+
+        <div class="content">
+            <!-- Tasks Tab -->
+            <div class="tab-content active" id="tasks">
+                <div class="add-task-form">
+                    <h3>Add New Task</h3>
+                    <div class="form-group">
+                        <label>Task Title</label>
+                        <input type="text" id="taskTitle" placeholder="Enter task title...">
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <select id="taskSubject">
+                            <option value="Math">Mathematics</option>
+                            <option value="Science">Science</option>
+                            <option value="English">English</option>
+                            <option value="History">History</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date</label>
+                        <input type="date" id="taskDueDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <div class="priority-selector">
+                            <button class="priority-btn high" data-priority="high">High</button>
+                            <button class="priority-btn medium active" data-priority="medium">Medium</button>
+                            <button class="priority-btn low" data-priority="low">Low</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Estimated Time (minutes)</label>
+                        <input type="number" id="taskTime" placeholder="30" min="1">
+                    </div>
+                    <button class="btn-primary" id="addTaskBtn">Add Task</button>
+                </div>
+
+                <div class="task-list" id="taskList">
+                    <!-- Tasks will be dynamically added here -->
+                </div>
+            </div>
+
+            <!-- Calendar Tab -->
+            <div class="tab-content" id="calendar">
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button class="calendar-nav" id="prevMonth">◀</button>
+                        <h3 class="calendar-title" id="calendarTitle">January 2025</h3>
+                        <button class="calendar-nav" id="nextMonth">▶</button>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Calendar will be dynamically generated -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timer Tab -->
+            <div class="tab-content" id="timer">
+                <div class="timer-container">
+                    <h3>Pomodoro Timer</h3>
+                    <div class="session-types">
+                        <button class="session-btn active" data-session="work">Work (25m)</button>
+                        <button class="session-btn" data-session="short">Short Break (5m)</button>
+                        <button class="session-btn" data-session="long">Long Break (15m)</button>
+                    </div>
+                    <div class="timer-display" id="timerDisplay">25:00</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="timerProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="timer-controls">
+                        <button class="timer-btn start-btn" id="startTimer">Start</button>
+                        <button class="timer-btn pause-btn" id="pauseTimer">Pause</button>
+                        <button class="timer-btn reset-btn" id="resetTimer">Reset</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📊 Today's Sessions</h3>
+                    <div id="sessionLog">
+                        <p>No sessions completed today</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Tab -->
+            <div class="tab-content" id="progress">
+                <div class="progress-overview">
+                    <div class="progress-card">
+                        <span class="progress-number" id="weeklyHours">0</span>
+                        <span class="progress-label">Hours This Week</span>
+                    </div>
+                    <div class="progress-card">
+                        <span class="progress-number" id="avgDaily">0</span>
+                        <span class="progress-label">Avg Daily (min)</span>
+                    </div>
+                    <div class="progress-card">
+                        <span class="progress-number" id="completionRate">0%</span>
+                        <span class="progress-label">Completion Rate</span>
+                    </div>
+                    <div class="progress-card">
+                        <span class="progress-number" id="totalSessions">0</span>
+                        <span class="progress-label">Study Sessions</span>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🏆 Achievements</h3>
+                    <div id="achievementsList">
+                        <div class="achievement-badge">🌟 Welcome to StudyPlanner!</div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📈 Weekly Progress</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <p>0 of 20 hours completed this week</p>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="settings">
+                <div class="settings-section">
+                    <h3>⚙️ General Settings</h3>
+                    <div class="setting-item">
+                        <span>Dark Mode</span>
+                        <div class="toggle-switch" id="darkModeToggle"></div>
+                    </div>
+                    <div class="setting-item">
+                        <span>Notifications</span>
+                        <div class="toggle-switch active" id="notificationsToggle"></div>
+                    </div>
+                    <div class="setting-item">
+                        <span>Sound Effects</span>
+                        <div class="toggle-switch active" id="soundToggle"></div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>⏰ Timer Settings</h3>
+                    <div class="form-group">
+                        <label>Work Session (minutes)</label>
+                        <input type="number" id="workDuration" value="25" min="1" max="60">
+                    </div>
+                    <div class="form-group">
+                        <label>Short Break (minutes)</label>
+                        <input type="number" id="shortBreak" value="5" min="1" max="30">
+                    </div>
+                    <div class="form-group">
+                        <label>Long Break (minutes)</label>
+                        <input type="number" id="longBreak" value="15" min="1" max="60">
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🎯 Goals</h3>
+                    <div class="form-group">
+                        <label>Daily Study Goal (hours)</label>
+                        <input type="number" id="dailyGoal" value="2" min="0.5" max="12" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label>Weekly Study Goal (hours)</label>
+                        <input type="number" id="weeklyGoal" value="20" min="1" max="80">
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <button class="btn-primary" id="exportData">📤 Export Data</button>
+                    <button class="btn-primary" style="background: #f44336; margin-top: 10px;" id="clearData">🗑️ Clear All Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // App State Management
+        class StudyPlannerApp {
+            constructor() {
+                this.tasks = JSON.parse(localStorage.getItem('studyTasks') || '[]');
+                this.sessions = JSON.parse(localStorage.getItem('studySessions') || '[]');
+                this.settings = JSON.parse(localStorage.getItem('studySettings') || '{}');
+                this.currentTimer = null;
+                this.currentSession = 'work';
+                this.timerState = 'stopped';
+                this.timeRemaining = 25 * 60; // 25 minutes in seconds
+                
+                this.initializeApp();
+            }
+
+            initializeApp() {
+                this.setupEventListeners();
+                this.renderTasks();
+                this.renderCalendar();
+                this.updateStats();
+                this.loadSettings();
+                this.updateTimerDisplay();
+            }
+
+            setupEventListeners() {
+                // Navigation
+                document.querySelectorAll('.nav-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+                });
+
+                // Task management
+                document.getElementById('addTaskBtn').addEventListener('click', () => this.addTask());
+                document.querySelectorAll('.priority-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.selectPriority(e.target));
+                });
+
+                // Timer controls
+                document.getElementById('startTimer').addEventListener('click', () => this.startTimer());
+                document.getElementById('pauseTimer').addEventListener('click', () => this.pauseTimer());
+                document.getElementById('resetTimer').addEventListener('click', () => this.resetTimer());
+
+                // Session type selection
+                document.querySelectorAll('.session-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.selectSession(e.target.dataset.session));
+                });
+
+                // Settings toggles
+                document.getElementById('darkModeToggle').addEventListener('click', () => this.toggleDarkMode());
+                document.getElementById('notificationsToggle').addEventListener('click', (e) => this.toggleSetting(e.target, 'notifications'));
+                document.getElementById('soundToggle').addEventListener('click', (e) => this.toggleSetting(e.target, 'sound'));
+
+                // Calendar navigation
+                document.getElementById('prevMonth').addEventListener('click', () => this.changeMonth(-1));
+                document.getElementById('nextMonth').addEventListener('click', () => this.changeMonth(1));
+
+                // Data management
+                document.getElementById('exportData').addEventListener('click', () => this.exportData());
+                document.getElementById('clearData').addEventListener('click', () => this.clearAllData());
+            }
+
+            switchTab(tabName) {
+                // Update nav tabs
+                document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+                // Update content
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.getElementById(tabName).classList.add('active');
+
+                // Refresh calendar if switching to calendar tab
+                if (tabName === 'calendar') {
+                    this.renderCalendar();
+                }
+            }
+
+            addTask() {
+                const title = document.getElementById('taskTitle').value;
+                const subject = document.getElementById('taskSubject').value;
+                const dueDate = document.getElementById('taskDueDate').value;
+                const priority = document.querySelector('.priority-btn.active').dataset.priority;
+                const estimatedTime = document.getElementById('taskTime').value || 30;
+
+                if (!title.trim()) {
+                    alert('Please enter a task title');
+                    return;
+                }
+
+                const task = {
+                    id: Date.now(),
+                    title: title.trim(),
+                    subject,
+                    dueDate,
+                    priority,
+                    estimatedTime: parseInt(estimatedTime),
+                    completed: false,
+                    createdAt: new Date().toISOString(),
+                    progress: 0
+                };
+
+                this.tasks.push(task);
+                this.saveTasks();
+                this.renderTasks();
+                this.updateStats();
+                this.clearTaskForm();
+            }
+
+            selectPriority(button) {
+                document.querySelectorAll('.priority-btn').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            }
+
+            clearTaskForm() {
+                document.getElementById('taskTitle').value = '';
+                document.getElementById('taskDueDate').value = '';
+                document.getElementById('taskTime').value = '';
+            }
+
+            renderTasks() {
+                const taskList = document.getElementById('taskList');
+                taskList.innerHTML = '';
+
+                if (this.tasks.length === 0) {
+                    taskList.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No tasks yet. Add your first task above!</p>';
+                    return;
+                }
+
+                this.tasks.forEach(task => {
+                    const taskCard = document.createElement('div');
+                    taskCard.className = `task-card ${task.priority} ${task.completed ? 'completed' : ''}`;
+                    
+                    taskCard.innerHTML = `
+                        <div class="task-header">
+                            <div class="task-title">${task.title}</div>
+                            <div class="task-options">
+                                <button class="task-btn complete-btn" onclick="app.toggleTaskComplete(${task.id})">${task.completed ? '✓' : '○'}</button>
+                                <button class="task-btn edit-btn" onclick="app.editTask(${task.id})">✏️</button>
+                                <button class="task-btn delete-btn" onclick="app.deleteTask(${task.id})">🗑️</button>
+                            </div>
+                        </div>
+                        <p style="color: #666; margin: 10px 0;">${task.subject} • ${task.estimatedTime} min</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${task.progress}%"></div>
+                        </div>
+                        <div class="task-meta">
+                            <span>Due: ${task.dueDate || 'No date'}</span>
+                            <span class="priority-tag ${task.priority}">${task.priority.toUpperCase()}</span>
+                        </div>
+                    `;
+                    
+                    taskList.appendChild(taskCard);
+                });
+            }
+
+            toggleTaskComplete(taskId) {
+                const task = this.tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.completed = !task.completed;
+                    task.progress = task.completed ? 100 : task.progress;
+                    if (task.completed) {
+                        this.addAchievement(`Completed: ${task.title}`);
+                        this.playSound('complete');
+                    }
+                    this.saveTasks();
+                    this.renderTasks();
+                    this.updateStats();
+                }
+            }
+
+            editTask(taskId) {
+                const task = this.tasks.find(t => t.id === taskId);
+                if (task) {
+                    document.getElementById('taskTitle').value = task.title;
+                    document.getElementById('taskSubject').value = task.subject;
+                    document.getElementById('taskDueDate').value = task.dueDate;
+                    document.getElementById('taskTime').value = task.estimatedTime;
+                    
+                    // Update priority selection
+                    document.querySelectorAll('.priority-btn').forEach(btn => btn.classList.remove('active'));
+                    document.querySelector(`[data-priority="${task.priority}"]`).classList.add('active');
+                    
+                    // Remove the task and let user add it again (simple edit)
+                    this.deleteTask(taskId);
+                    
+                    // Scroll to top
+                    document.querySelector('.content').scrollTop = 0;
+                }
+            }
+
+            deleteTask(taskId) {
+                this.tasks = this.tasks.filter(t => t.id !== taskId);
+                this.saveTasks();
+                this.renderTasks();
+                this.updateStats();
+            }
+
+            // Advanced Timer Features
+            startTimer() {
+                if (this.timerState === 'stopped' || this.timerState === 'paused') {
+                    this.timerState = 'running';
+                    this.currentTimer = setInterval(() => {
+                        this.timeRemaining--;
+                        this.updateTimerDisplay();
+                        this.updateTimerProgress();
+                        
+                        if (this.timeRemaining <= 0) {
+                            this.completeSession();
+                        }
+                    }, 1000);
+                    
+                    document.getElementById('startTimer').textContent = 'Running...';
+                    document.getElementById('startTimer').disabled = true;
+                }
+            }
+
+            pauseTimer() {
+                if (this.timerState === 'running') {
+                    this.timerState = 'paused';
+                    clearInterval(this.currentTimer);
+                    document.getElementById('startTimer').textContent = 'Resume';
+                    document.getElementById('startTimer').disabled = false;
+                }
+            }
+
+            resetTimer() {
+                this.timerState = 'stopped';
+                clearInterval(this.currentTimer);
+                this.setTimerDuration();
+                this.updateTimerDisplay();
+                this.updateTimerProgress();
+                document.getElementById('startTimer').textContent = 'Start';
+                document.getElementById('startTimer').disabled = false;
+            }
+
+            completeSession() {
+                this.timerState = 'stopped';
+                clearInterval(this.currentTimer);
+                
+                // Log the session
+                const session = {
+                    type: this.currentSession,
+                    duration: this.getSessionDuration(this.currentSession),
+                    completedAt: new Date().toISOString(),
+                    date: new Date().toDateString()
+                };
+                
+                this.sessions.push(session);
+                this.saveSessions();
+                
+                // Play completion sound and show notification
+                this.playSound('session');
+                this.showNotification(`${this.currentSession} session completed!`);
+                
+                // Add achievement
+                this.addAchievement(`Completed ${this.currentSession} session`);
+                
+                // Auto-start break or next session based on settings
+                this.autoAdvanceSession();
+                
+                // Update UI
+                this.renderSessionLog();
+                this.updateStats();
+                this.resetTimer();
+            }
+
+            selectSession(sessionType) {
+                this.currentSession = sessionType;
+                document.querySelectorAll('.session-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelector(`[data-session="${sessionType}"]`).classList.add('active');
+                this.setTimerDuration();
+                this.resetTimer();
+            }
+
+            setTimerDuration() {
+                const durations = {
+                    work: parseInt(document.getElementById('workDuration').value) * 60,
+                    short: parseInt(document.getElementById('shortBreak').value) * 60,
+                    long: parseInt(document.getElementById('longBreak').value) * 60
+                };
+                this.timeRemaining = durations[this.currentSession];
+            }
+
+            getSessionDuration(sessionType) {
+                const durations = {
+                    work: parseInt(document.getElementById('workDuration').value),
+                    short: parseInt(document.getElementById('shortBreak').value),
+                    long: parseInt(document.getElementById('longBreak').value)
+                };
+                return durations[sessionType];
+            }
+
+            updateTimerDisplay() {
+                const minutes = Math.floor(this.timeRemaining / 60);
+                const seconds = this.timeRemaining % 60;
+                const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('timerDisplay').textContent = display;
+                
+                // Update document title for background tracking
+                document.title = `${display} - StudyPlanner Pro`;
+            }
+
+            updateTimerProgress() {
+                const totalTime = this.getSessionDuration(this.currentSession) * 60;
+                const progress = ((totalTime - this.timeRemaining) / totalTime) * 100;
+                document.getElementById('timerProgress').style.width = `${progress}%`;
+            }
+
+            autoAdvanceSession() {
+                // Advanced auto-session logic
+                const workSessions = this.sessions.filter(s => s.type === 'work' && s.date === new Date().toDateString()).length;
+                
+                if (this.currentSession === 'work') {
+                    // After work session, start break
+                    if (workSessions % 4 === 0) {
+                        this.selectSession('long'); // Long break after 4 work sessions
+                    } else {
+                        this.selectSession('short'); // Short break otherwise
+                    }
+                } else {
+                    // After break, go back to work
+                    this.selectSession('work');
+                }
+            }
+
+            renderSessionLog() {
+                const sessionLog = document.getElementById('sessionLog');
+                const todaySessions = this.sessions.filter(s => s.date === new Date().toDateString());
+                
+                if (todaySessions.length === 0) {
+                    sessionLog.innerHTML = '<p>No sessions completed today</p>';
+                    return;
+                }
+                
+                const sessionCounts = todaySessions.reduce((acc, session) => {
+                    acc[session.type] = (acc[session.type] || 0) + 1;
+                    return acc;
+                }, {});
+                
+                sessionLog.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
+                        <div>
+                            <div style="font-size: 20px; font-weight: bold; color: #4CAF50;">${sessionCounts.work || 0}</div>
+                            <div style="font-size: 12px; color: #666;">Work</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 20px; font-weight: bold; color: #ff9800;">${sessionCounts.short || 0}</div>
+                            <div style="font-size: 12px; color: #666;">Short Break</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 20px; font-weight: bold; color: #2196F3;">${sessionCounts.long || 0}</div>
+                            <div style="font-size: 12px; color: #666;">Long Break</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Advanced Calendar Features
+            renderCalendar() {
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+                
+                const firstDay = new Date(currentYear, currentMonth, 1);
+                const lastDay = new Date(currentYear, currentMonth + 1, 0);
+                const startDate = new Date(firstDay);
+                startDate.setDate(startDate.getDate() - firstDay.getDay());
+                
+                const calendarGrid = document.getElementById('calendarGrid');
+                const calendarTitle = document.getElementById('calendarTitle');
+                
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'];
+                
+                calendarTitle.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+                
+                calendarGrid.innerHTML = '';
+                
+                // Add day headers
+                const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                dayHeaders.forEach(day => {
+                    const dayHeader = document.createElement('div');
+                    dayHeader.className = 'day-header';
+                    dayHeader.textContent = day;
+                    calendarGrid.appendChild(dayHeader);
+                });
+                
+                // Add calendar days
+                const currentDate = new Date(startDate);
+                for (let i = 0; i < 42; i++) {
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'calendar-day';
+                    dayElement.textContent = currentDate.getDate();
+                    
+                    // Check if it's today
+                    if (currentDate.toDateString() === now.toDateString()) {
+                        dayElement.classList.add('today');
+                    }
+                    
+                    // Check if there are tasks or sessions on this day
+                    const dayString = currentDate.toISOString().split('T')[0];
+                    const hasTasks = this.tasks.some(task => task.dueDate === dayString);
+                    const hasSessions = this.sessions.some(session => 
+                        new Date(session.completedAt).toDateString() === currentDate.toDateString()
+                    );
+                    
+                    if (hasTasks || hasSessions) {
+                        dayElement.classList.add('has-tasks');
+                    }
+                    
+                    // Add click handler for day details
+                    dayElement.addEventListener('click', () => this.showDayDetails(currentDate));
+                    
+                    calendarGrid.appendChild(dayElement);
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+            }
+
+            changeMonth(direction) {
+                // This is a simplified version - in real app, you'd track current month
+                // For now, just re-render current month
+                this.renderCalendar();
+            }
+
+            showDayDetails(date) {
+                const dayString = date.toISOString().split('T')[0];
+                const dayTasks = this.tasks.filter(task => task.dueDate === dayString);
+                const daySessions = this.sessions.filter(session => 
+                    new Date(session.completedAt).toDateString() === date.toDateString()
+                );
+                
+                let details = `📅 ${date.toDateString()}\n\n`;
+                
+                if (dayTasks.length > 0) {
+                    details += `📝 Tasks (${dayTasks.length}):\n`;
+                    dayTasks.forEach(task => {
+                        details += `• ${task.title} (${task.priority})\n`;
+                    });
+                    details += '\n';
+                }
+                
+                if (daySessions.length > 0) {
+                    details += `⏰ Study Sessions (${daySessions.length}):\n`;
+                    const sessionCounts = daySessions.reduce((acc, session) => {
+                        acc[session.type] = (acc[session.type] || 0) + 1;
+                        return acc;
+                    }, {});
+                    
+                    Object.entries(sessionCounts).forEach(([type, count]) => {
+                        details += `• ${type}: ${count} sessions\n`;
+                    });
+                }
+                
+                if (dayTasks.length === 0 && daySessions.length === 0) {
+                    details += 'No tasks or study sessions on this day.';
+                }
+                
+                alert(details);
+            }
+
+            // Advanced Statistics and Progress Tracking
+            updateStats() {
+                // Basic stats
+                document.getElementById('totalTasks').textContent = this.tasks.length;
+                document.getElementById('completedTasks').textContent = this.tasks.filter(t => t.completed).length;
+                
+                // Calculate study streak
+                const streak = this.calculateStudyStreak();
+                document.getElementById('studyStreak').textContent = streak;
+                
+                // Advanced progress stats
+                this.updateProgressStats();
+            }
+
+            calculateStudyStreak() {
+                const today = new Date();
+                let streak = 0;
+                let currentDate = new Date(today);
+                
+                while (true) {
+                    const dateString = currentDate.toDateString();
+                    const hasSessions = this.sessions.some(session => session.date === dateString);
+                    
+                    if (hasSessions) {
+                        streak++;
+                        currentDate.setDate(currentDate.getDate() - 1);
+                    } else {
+                        break;
+                    }
+                    
+                    // Prevent infinite loop
+                    if (streak > 365) break;
+                }
+                
+                return streak;
+            }
+
+            updateProgressStats() {
+                // Weekly hours
+                const weekStart = new Date();
+                weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                const weekSessions = this.sessions.filter(session => {
+                    const sessionDate = new Date(session.completedAt);
+                    return sessionDate >= weekStart;
+                });
+                
+                const weeklyMinutes = weekSessions.reduce((total, session) => total + session.duration, 0);
+                const weeklyHours = (weeklyMinutes / 60).toFixed(1);
+                document.getElementById('weeklyHours').textContent = weeklyHours;
+                
+                // Average daily minutes
+                const totalMinutes = this.sessions.reduce((total, session) => total + session.duration, 0);
+                const days = this.sessions.length > 0 ? Math.max(1, this.getUniqueDays(this.sessions).length) : 1;
+                const avgDaily = Math.round(totalMinutes / days);
+                document.getElementById('avgDaily').textContent = avgDaily;
+                
+                // Completion rate
+                const completionRate = this.tasks.length > 0 
+                    ? Math.round((this.tasks.filter(t => t.completed).length / this.tasks.length) * 100)
+                    : 0;
+                document.getElementById('completionRate').textContent = `${completionRate}%`;
+                
+                // Total sessions
+                document.getElementById('totalSessions').textContent = this.sessions.length;
+            }
+
+            getUniqueDays(sessions) {
+                const uniqueDays = new Set();
+                sessions.forEach(session => {
+                    uniqueDays.add(session.date);
+                });
+                return Array.from(uniqueDays);
+            }
+
+            // Achievement System
+            addAchievement(achievement) {
+                const achievements = JSON.parse(localStorage.getItem('achievements') || '[]');
+                const newAchievement = {
+                    text: achievement,
+                    timestamp: new Date().toISOString(),
+                    id: Date.now()
+                };
+                
+                achievements.unshift(newAchievement);
+                
+                // Keep only last 10 achievements
+                if (achievements.length > 10) {
+                    achievements.splice(10);
+                }
+                
+                localStorage.setItem('achievements', JSON.stringify(achievements));
+                this.renderAchievements();
+            }
+
+            renderAchievements() {
+                const achievements = JSON.parse(localStorage.getItem('achievements') || '[]');
+                const achievementsList = document.getElementById('achievementsList');
+                
+                if (achievements.length === 0) {
+                    achievementsList.innerHTML = '<div class="achievement-badge">🌟 Welcome to StudyPlanner!</div>';
+                    return;
+                }
+                
+                achievementsList.innerHTML = achievements.map(achievement => 
+                    `<div class="achievement-badge">🏆 ${achievement.text}</div>`
+                ).join('');
+            }
+
+            // Sound and Notification System
+            playSound(type) {
+                if (!this.settings.sound) return;
+                
+                // Create audio context for sound effects
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                if (type === 'complete') {
+                    // Success sound
+                    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                    oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+                    oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+                } else if (type === 'session') {
+                    // Session complete sound
+                    oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4
+                    oscillator.frequency.setValueAtTime(554.37, audioContext.currentTime + 0.15); // C#5
+                }
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            }
+
+            showNotification(message) {
+                if (!this.settings.notifications) return;
+                
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('StudyPlanner Pro', {
+                        body: message,
+                        icon: '📚'
+                    });
+                } else if ('Notification' in window && Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            new Notification('StudyPlanner Pro', {
+                                body: message,
+                                icon: '📚'
+                            });
+                        }
+                    });
+                }
+            }
+
+            // Settings Management
+            toggleDarkMode() {
+                document.body.classList.toggle('dark-mode');
+                const toggle = document.getElementById('darkModeToggle');
+                toggle.classList.toggle('active');
+                
+                this.settings.darkMode = document.body.classList.contains('dark-mode');
+                this.saveSettings();
+            }
+
+            toggleSetting(toggle, settingName) {
+                toggle.classList.toggle('active');
+                this.settings[settingName] = toggle.classList.contains('active');
+                this.saveSettings();
+            }
+
+            loadSettings() {
+                // Load dark mode
+                if (this.settings.darkMode) {
+                    document.body.classList.add('dark-mode');
+                    document.getElementById('darkModeToggle').classList.add('active');
+                }
+                
+                // Load other settings
+                if (this.settings.notifications !== false) {
+                    document.getElementById('notificationsToggle').classList.add('active');
+                }
+                
+                if (this.settings.sound !== false) {
+                    document.getElementById('soundToggle').classList.add('active');
+                }
+                
+                // Load timer settings
+                if (this.settings.workDuration) {
+                    document.getElementById('workDuration').value = this.settings.workDuration;
+                }
+                if (this.settings.shortBreak) {
+                    document.getElementById('shortBreak').value = this.settings.shortBreak;
+                }
+                if (this.settings.longBreak) {
+                    document.getElementById('longBreak').value = this.settings.longBreak;
+                }
+                
+                // Load goals
+                if (this.settings.dailyGoal) {
+                    document.getElementById('dailyGoal').value = this.settings.dailyGoal;
+                }
+                if (this.settings.weeklyGoal) {
+                    document.getElementById('weeklyGoal').value = this.settings.weeklyGoal;
+                }
+                
+                this.renderAchievements();
+                this.renderSessionLog();
+            }
+
+            // Data Management
+            exportData() {
+                const data = {
+                    tasks: this.tasks,
+                    sessions: this.sessions,
+                    settings: this.settings,
+                    achievements: JSON.parse(localStorage.getItem('achievements') || '[]'),
+                    exportDate: new Date().toISOString()
+                };
+                
+                const dataStr = JSON.stringify(data, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `studyplanner-backup-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                
+                URL.revokeObjectURL(url);
+                this.addAchievement('Exported study data');
+            }
+
+            clearAllData() {
+                if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                    localStorage.removeItem('studyTasks');
+                    localStorage.removeItem('studySessions');
+                    localStorage.removeItem('studySettings');
+                    localStorage.removeItem('achievements');
+                    
+                    this.tasks = [];
+                    this.sessions = [];
+                    this.settings = {};
+                    
+                    this.renderTasks();
+                    this.updateStats();
+                    this.renderAchievements();
+                    this.renderSessionLog();
+                    
+                    alert('All data cleared successfully!');
+                }
+            }
+
+            // Storage methods
+            saveTasks() {
+                localStorage.setItem('studyTasks', JSON.stringify(this.tasks));
+            }
+
+            saveSessions() {
+                localStorage.setItem('studySessions', JSON.stringify(this.sessions));
+            }
+
+            saveSettings() {
+                localStorage.setItem('studySettings', JSON.stringify(this.settings));
+            }
+        }
+
+        // Initialize the app
+        const app = new StudyPlannerApp();
+
+        // Request notification permission on load
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Prevent zoom on double tap (mobile optimization)
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>
